@@ -14,34 +14,37 @@ def validate_fields(upload_files: list, pdf_file_name: str) -> bool:
         return False
     return True
 
-uploaded_data = st.file_uploader(label="Upload images", 
-                        type=["jpeg, png, JPEG, PNG", "JPG", "jpg"],
-                        accept_multiple_files=True)
+def img_to_pdf_ui():
+    uploaded_data = st.file_uploader(label="Upload images", 
+                            type=["jpeg, png, JPEG, PNG", "JPG", "jpg"],
+                            accept_multiple_files=True)
 
-pdf_file_name = st.text_input("PDF File Name")
+    pdf_file_name = st.text_input("PDF File Name")
 
-if len(uploaded_data) > 0:
-    exp = st.expander("Preview Image")
-    for img in uploaded_data:
-        exp.image(image=img,width=300)
-
-col1, col2 = st.columns(2)
-
-is_submit = col1.button(label="Convert To PDF", width="stretch")
-
-if is_submit:
-    if validate_fields(uploaded_data, pdf_file_name):
-        images = []
+    if len(uploaded_data) > 0:
+        exp = st.expander("Preview Image")
         for img in uploaded_data:
-            images.append(img.getvalue())
-        pdf = img2pdf.convert(images)
+            exp.image(image=img,width=300)
 
-        col2.download_button(
-            label="Download PDF",
-            data=pdf,
-            file_name=pdf_file_name + ".pdf",
-            mime="pdf",
-            icon=":material/download:",
-            width="stretch"
-        )
+    col1, col2 = st.columns(2)
 
+    is_submit = col1.button(label="Convert To PDF", width="stretch")
+
+    if is_submit:
+        if validate_fields(uploaded_data, pdf_file_name):
+            images = []
+            for img in uploaded_data:
+                images.append(img.getvalue())
+            pdf = img2pdf.convert(images)
+
+            col2.download_button(
+                label="Download PDF",
+                data=pdf,
+                file_name=pdf_file_name + ".pdf",
+                mime="pdf",
+                icon=":material/download:",
+                width="stretch"
+            )
+
+if st.session_state.get("logged_in", False):
+    img_to_pdf_ui()
