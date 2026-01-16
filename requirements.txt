@@ -1,8 +1,8 @@
-﻿streamlit
+streamlit
 streamlit[auth]
 img2pdf
 requests
 cryptography
-mega.py
+mega.py==1.0.8
 pycryptodome==3.15.0
-tenacity
+tenacity==8.0.1
