@@ -1,5 +1,4 @@
 import streamlit as st
-from pathlib import Path
 from mega import Mega
 
 class MegaServices:
@@ -14,12 +13,16 @@ class MegaServices:
         self.mega = Mega()
         self.parent_folder_id = st.secrets["mega"]["parent_folder_id"]
 
-    def get_mega_session(self) -> Mega:
-        m = self.mega.login(
-            email=st.secrets["mega"]["login_email"],
-            password=st.secrets["mega"]["login_password"]
-        )
-        return m
+    def get_mega_session(self) -> Mega|None:
+        try:
+            m = self.mega.login(
+                email=st.secrets["mega"]["login_email"],
+                password=st.secrets["mega"]["login_password"]
+            )
+            return m
+        except Exception as e:
+            st.error(f"Error while logging in: {str(e)}")
+            return None
     
     def get_folders(self, session: Mega) -> list[dict[str, str]]|None:
         try:
@@ -93,17 +96,16 @@ class MegaServices:
             st.error(f"Error while deleting the file: {str(e)}")
             return False
 
-    def download_file(seld, session: Mega, parent_folder_id: str ,child_file_id: str) -> bool:
+    def get_download_link(seld, session: Mega, parent_folder_id: str ,child_file_id: str) -> str|None:
         try:
             files = session.get_files_in_node(parent_folder_id)
             if child_file_id not in files:
                 raise Exception("File does not exist.")
-            session.download((child_file_id, files[child_file_id]))
-            # print(session.get_link((child_file_id, files[child_file_id])))
-            return True
+            link = session.get_link((child_file_id, files[child_file_id]))
+            return link
         except Exception as e:
             st.error(f"Error while downloading the file: {str(e)}")
-            return False
+            return None
 
     def get_user_data(self, session: Mega):
         return session.get_storage_space()

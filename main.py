@@ -19,7 +19,7 @@ if user_data.get("is_logged_in", False) and user_data.get("email") in st.secrets
 if user_data.get("is_logged_in", False) and user_data.get("email") not in st.secrets["emails"]["allowlist"]:
     st.sidebar.write("Unallowed user. Reach out to admin.")
 
-if not st.user.is_logged_in:
+if not user_data.get("is_logged_in", False):
     st.header("Document Manager")
     is_login_clicked = st.sidebar.button("Login With Google")
     if is_login_clicked:
@@ -29,5 +29,3 @@ else:
     if is_logout_clicked:
         st.session_state["logged_in"] = False
         st.logout()
-
-

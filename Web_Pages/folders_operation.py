@@ -18,6 +18,8 @@ def folders_operation_ui():
         mega_session = st.session_state["mega_logged_data"]
     else:
         mega_session = mega_service.get_mega_session()
+        if mega_session is None:
+            return
         st.session_state["mega_logged_data"] = mega_session
         st.session_state["mega_logged_in"] = True
 

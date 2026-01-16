@@ -8,13 +8,6 @@ def delete_file(service: MegaServices, session: Mega, pid: int, cid: int):
         st.success("File deleted successfully.")
         st.session_state["mega_all_data"][pid]["children"].pop(cid)
 
-def download_file(service: MegaServices, session: Mega, pid: int, cid: int):
-    parent_folder_id = st.session_state["mega_all_data"][pid]["parent"]["id"]
-    child_file_id = st.session_state["mega_all_data"][pid]["children"][cid]["id"]
-    status = service.download_file(session, parent_folder_id, child_file_id)
-    if status:
-        st.success("File downloaded successfully.")
-
 def view_ui():
     mega_service = get_megaserivces_instance()
     mega_session = None
@@ -26,6 +19,8 @@ def view_ui():
         mega_session = st.session_state["mega_logged_data"]
     else:
         mega_session = mega_service.get_mega_session()
+        if mega_session is None:
+            return
         st.session_state["mega_logged_data"] = mega_session
         st.session_state["mega_logged_in"] = True
     
@@ -59,19 +54,21 @@ def view_ui():
             expander.write("No file found.")
         else:
             for cindex, child in enumerate(data["children"]):
+                parent_id = data["parent"]["id"]
+                file_id = child["id"]
+                file_url = mega_service.get_download_link(mega_session, parent_id, file_id)
+
                 col1, col2, col3 = expander.columns(3)
                 col1.write(child["name"])
-                col2.button(
-                    label="Download", 
-                    key=f"Download-{child['name']}-{cindex}-{pindex}", 
-                    width="stretch",
-                    on_click=lambda service=mega_service, session=mega_session, pid=pindex, cid=cindex: download_file(service, session, pid, cid))
+                
+                if file_url:
+                    col2.link_button("Download", file_url, icon=":material/download:", use_container_width=True)
+                
                 col3.button(
                     label="Delete", 
                     key=f"Delete-{child['name']}-{cindex}-{pindex}", 
                     width="stretch",
                     on_click=lambda service=mega_service, session=mega_session, pid=pindex, cid=cindex: delete_file(service, session, pid, cid))
-
 
 if st.session_state.get("logged_in", False):
     view_ui()
