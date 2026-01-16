@@ -3,5 +3,5 @@ streamlit[auth]
 img2pdf
 requests
 cryptography
-mega.py==1.0.8
+mega.py
 pycryptodome==3.15.0
