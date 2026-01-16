@@ -44,6 +44,8 @@ def upload_ui():
     bar.progress(50, "Fetching folders list.")
     if "mega_folders" not in st.session_state:
         folders = mega_service.get_folders(mega_session)
+        if folders is None:
+            return
         st.session_state["mega_folders"] = folders
     else:
         folders = st.session_state["mega_folders"]

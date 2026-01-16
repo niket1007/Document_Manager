@@ -49,24 +49,28 @@ class MegaServices:
             st.error(f"Error while deleting the folder: {str(e)}")
             return False
     
-    def get_files_and_folders(self, session: Mega, folders: list) -> list:
-        complete_data = []
-        for folder in folders:
-            temp = []
-            files = session.get_files_in_node(folder["id"])
-            for file in files:
-                temp.append({
-                    "id": files[file]["h"],
-                    "name": files[file]["a"]["n"]
-                })
-            complete_data.append(
-                {
-                    "parent": {"id": folder["id"], "name": folder["name"]},
-                    "children": temp
-                }
-            )
-        return complete_data
-    
+    def get_files_and_folders(self, session: Mega, folders: list) -> list|None:
+        try:
+            complete_data = []
+            for folder in folders:
+                temp = []
+                files = session.get_files_in_node(folder["id"])
+                for file in files:
+                    temp.append({
+                        "id": files[file]["h"],
+                        "name": files[file]["a"]["n"]
+                    })
+                complete_data.append(
+                    {
+                        "parent": {"id": folder["id"], "name": folder["name"]},
+                        "children": temp
+                    }
+                )
+            return complete_data
+        except Exception as e:
+            st.error(f"Error while fetching complete data: {str(e)}")
+            return None
+        
     def create_folder(self, session: Mega, folder_name: str) -> str|None:
         try:
             created_data = session.create_folder(
@@ -106,9 +110,6 @@ class MegaServices:
         except Exception as e:
             st.error(f"Error while downloading the file: {str(e)}")
             return None
-
-    def get_user_data(self, session: Mega):
-        return session.get_storage_space()
 
 @st.cache_resource
 def get_megaserivces_instance():

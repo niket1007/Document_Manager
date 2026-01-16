@@ -27,6 +27,8 @@ def view_ui():
     bar.progress(50, "Fetching folders list.")
     if "mega_folders" not in st.session_state:
         folders = mega_service.get_folders(mega_session)
+        if folders is None:
+            return
         st.session_state["mega_folders"] = folders
     else:
         folders = st.session_state["mega_folders"]
@@ -34,6 +36,8 @@ def view_ui():
     bar.progress(75, "Fetching files for each folder")
     if "mega_all_data" not in st.session_state:
         complete_data = mega_service.get_files_and_folders(mega_session, folders)
+        if complete_data is None:
+            return
         st.session_state["mega_all_data"] = complete_data
     else:
         complete_data = st.session_state["mega_all_data"]
