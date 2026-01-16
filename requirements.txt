@@ -1,6 +1,6 @@
-streamlit
+streamlit>=1.30.0
 streamlit[auth]
-img2pdf
-requests
-pycrypto
-mega.py
+img2pdf==0.5.1
+requests==2.31.0
+pycryptodome==3.19.1
+mega.py==1.0.8
