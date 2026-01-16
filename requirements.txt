@@ -2,5 +2,4 @@ streamlit
 streamlit[auth]
 img2pdf
 requests
-cryptography
 mega.py
