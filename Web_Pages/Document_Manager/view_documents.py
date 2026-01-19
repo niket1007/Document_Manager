@@ -9,9 +9,6 @@ def delete_file(session: GDriveSession, pid: int, cid: int):
         st.success("File deleted successfully.")
         st.session_state["gdrive_all_data"][pid]["children"].pop(cid)
 
-def refresh_page():
-    del st.session_state["gdrive_all_data"]
-
 def view_ui():
     bar = st.progress(0, "Initiating google drive connection.")
     session = get_gdrive_instance()
@@ -25,8 +22,9 @@ def view_ui():
         return
 
     bar.progress(75, "Fetching files for each folder")
-    if "gdrive_all_data" not in st.session_state:
+    if st.session_state.get("gdrive_all_data", None) is None:
         complete_data = session.get_files_and_folders(folders)
+        print("complete_data", complete_data)
         if complete_data is None:
             return
         st.session_state["gdrive_all_data"] = complete_data
@@ -36,10 +34,13 @@ def view_ui():
     bar.progress(100, "Loading UI.")
     bar.empty()
     
-    st.button(
+    is_refreshed = st.button(
         label="Refresh", 
-        type='secondary',
-        on_click=refresh_page())
+        type='secondary')
+    
+    if is_refreshed:
+        st.session_state["gdrive_all_data"] = None
+        st.rerun()
 
     for pindex, data in enumerate(complete_data):
         expander = st.expander(data["parent"]["name"])
@@ -47,16 +48,10 @@ def view_ui():
             expander.write("No file found.")
         else:
             for cindex, child in enumerate(data["children"]):
-                col1, col2, col3, col4 = expander.columns(4)
+                col1, col2, col4 = expander.columns(3)
                 col1.write(child["name"])
                 
                 col2.link_button("Preview", child["preview_link"], use_container_width=True)
-                
-                col3.button(
-                    label="Download",
-                    key=f"Download-{child['name']}-{cindex}-{pindex}",
-                    width="stretch"
-                )
 
                 col4.button(
                     label="Delete", 
@@ -65,6 +60,6 @@ def view_ui():
                     on_click=lambda session=session, pid=pindex, cid=cindex: delete_file(session, pid, cid))
 
                 expander.divider(width="stretch")
-       
+
 if st.session_state.get("logged_in", False):
     view_ui()

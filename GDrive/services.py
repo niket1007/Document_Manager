@@ -12,7 +12,7 @@ class GDriveSession:
     def get_drive_session(self) -> Any:
         try:
             tokens = st.user.tokens
-            print(tokens)
+            print(st.user.to_dict())
             if tokens is None:
                 raise Exception("Login invalid")
 

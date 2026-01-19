@@ -11,9 +11,9 @@ if st.user.is_logged_in:
             "Introduction": [st.Page(page="Web_Pages/intro.py", title="Intro")],
             "Utility": [st.Page(page="Web_Pages/image_to_pdf.py", title="Image to PDF")],
             "Document Manager": [
-                st.Page("Web_Pages/folders_operation.py", title="Folders"),
-                st.Page("Web_Pages/upload_documents.py", title="Upload"),
-                st.Page("Web_Pages/view_documents.py", title="View")
+                st.Page("Web_Pages/Document_Manager/folders_operation.py", title="Folders"),
+                st.Page("Web_Pages/Document_Manager/upload_documents.py", title="Upload"),
+                st.Page("Web_Pages/Document_Manager/view_documents.py", title="View")
             ]
         }
         nav = st.navigation(pages=st_pages)
