@@ -21,6 +21,10 @@ def view_ui():
     if folders is None:
         return
 
+    if folders == []:
+        st.warning("Drive is empty.")
+        return
+
     bar.progress(75, "Fetching files for each folder")
     if st.session_state.get("gdrive_all_data", None) is None:
         complete_data = session.get_files_and_folders(folders)
