@@ -24,7 +24,6 @@ def view_ui():
     bar.progress(75, "Fetching files for each folder")
     if st.session_state.get("gdrive_all_data", None) is None:
         complete_data = session.get_files_and_folders(folders)
-        print("complete_data", complete_data)
         if complete_data is None:
             return
         st.session_state["gdrive_all_data"] = complete_data
