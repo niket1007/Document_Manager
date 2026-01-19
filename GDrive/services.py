@@ -26,10 +26,17 @@ class GDriveSession:
         except Exception as e:
             st.error(f"Error while connecting to drive: {(str(e))}")
             return None
+    
+    def increment_request_count(self):
+        """Simple tracker using session state."""
+        if "api_requests" not in st.session_state:
+            st.session_state["api_requests"] = 0
+        st.session_state["api_requests"] += 1
 
     def get_folders(self) -> list|None:
         try:
             query = f"'{self.parent_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+            self.increment_request_count()
             results = self.service.files().list(
                 q=query, 
                 fields="files(id, name)",
@@ -46,6 +53,7 @@ class GDriveSession:
                 f_id = folder["id"]
                 query = f"'{f_id}' in parents and trashed = false"
                 temp = []
+                self.increment_request_count()
                 results = self.service.files().list(
                     q=query,
                     fields="files(id, name, webViewLink)",
@@ -75,6 +83,7 @@ class GDriveSession:
                 'mimeType': 'application/vnd.google-apps.folder',
                 'parents': [self.parent_folder_id]
             }
+            self.increment_request_count()
             folder = self.service.files().create(body=metadata, fields='id').execute()
             return folder.get('id')
         except Exception as e:
@@ -83,6 +92,7 @@ class GDriveSession:
     
     def delete_folder_or_file(self, folder_id: str) -> bool:
         try:
+            self.increment_request_count()
             self.service.files().delete(fileId=folder_id).execute()
             return True
         except Exception as e:
@@ -91,6 +101,7 @@ class GDriveSession:
 
     def upload_pdf(self, file_path: str, name: str, folder_id: str):
         try:
+            self.increment_request_count()
             metadata = {'name': name, 'parents': [folder_id]}
             media = MediaFileUpload(
                 file_path, 
@@ -105,6 +116,12 @@ class GDriveSession:
         except Exception as e:
             st.error(f"Error while uploading pdf: {str(e)}")
             return False
+    
+    def get_storage_quota(self) -> dict:
+        # This counts as 1 request
+        self.increment_request_count()
+        results = self.service.about().get(fields="storageQuota").execute()
+        return results.get('storageQuota', {})
 
 @st.cache_resource
 def get_gdrive_instance():

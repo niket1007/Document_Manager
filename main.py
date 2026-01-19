@@ -14,6 +14,9 @@ if st.user.is_logged_in:
                 st.Page("Web_Pages/Document_Manager/folders_operation.py", title="Folders"),
                 st.Page("Web_Pages/Document_Manager/upload_documents.py", title="Upload"),
                 st.Page("Web_Pages/Document_Manager/view_documents.py", title="View")
+            ],
+            "Admin Panels": [
+                st.Page("Web_Pages/Admin_Panel/admin.py", title="Admin"),
             ]
         }
         nav = st.navigation(pages=st_pages)
