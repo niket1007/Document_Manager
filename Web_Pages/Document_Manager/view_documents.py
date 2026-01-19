@@ -22,6 +22,8 @@ def view_ui():
         return
 
     if folders == []:
+        bar.progress(100, "Loading UI.")
+        bar.empty()
         st.warning("Drive is empty.")
         return
 
