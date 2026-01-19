@@ -1,56 +1,45 @@
 import streamlit as st
-from Mega.services import get_megaserivces_instance, Mega, MegaServices
+from Web_Pages.Utility.utils import error_logging, get_gdrive_folders
+from GDrive.services import get_gdrive_instance, GDriveSession
 
-def delete_file(service: MegaServices, session: Mega, pid: int, cid: int):
-    file_id = st.session_state["mega_all_data"][pid]["children"][cid]["id"]
-    status = service.delete_file(session, file_id)
+def delete_file(session: GDriveSession, pid: int, cid: int):
+    file_id = st.session_state["gdrive_all_data"][pid]["children"][cid]["id"]
+    status = session.delete_folder_or_file(file_id)
     if status:
         st.success("File deleted successfully.")
-        st.session_state["mega_all_data"][pid]["children"].pop(cid)
+        st.session_state["gdrive_all_data"][pid]["children"].pop(cid)
+
+def refresh_page():
+    del st.session_state["gdrive_all_data"]
 
 def view_ui():
-    mega_service = get_megaserivces_instance()
-    mega_session = None
-    folders = None
-    complete_data = None
+    bar = st.progress(0, "Initiating google drive connection.")
+    session = get_gdrive_instance()
+    if session is None:
+        error_logging()
+        return
 
-    bar = st.progress(0, "Initiating mega cloud connection.")
-    if st.session_state.get("mega_logged_in", False):
-        mega_session = st.session_state["mega_logged_data"]
-    else:
-        mega_session = mega_service.get_mega_session()
-        if mega_session is None:
-            return
-        st.session_state["mega_logged_data"] = mega_session
-        st.session_state["mega_logged_in"] = True
-    
     bar.progress(50, "Fetching folders list.")
-    if "mega_folders" not in st.session_state:
-        folders = mega_service.get_folders(mega_session)
-        if folders is None:
-            return
-        st.session_state["mega_folders"] = folders
-    else:
-        folders = st.session_state["mega_folders"]
+    folders = get_gdrive_folders(session=session)
+    if folders is None:
+        return
 
     bar.progress(75, "Fetching files for each folder")
-    if "mega_all_data" not in st.session_state:
-        complete_data = mega_service.get_files_and_folders(mega_session, folders)
+    if "gdrive_all_data" not in st.session_state:
+        complete_data = session.get_files_and_folders(folders)
         if complete_data is None:
             return
-        st.session_state["mega_all_data"] = complete_data
+        st.session_state["gdrive_all_data"] = complete_data
     else:
-        complete_data = st.session_state["mega_all_data"]
-    
+        complete_data = st.session_state["gdrive_all_data"]
 
     bar.progress(100, "Loading UI.")
     bar.empty()
-
-    refresh_button = st.button(label="Refresh", type='secondary')
-
-    if refresh_button:
-        del st.session_state["mega_all_data"]
-        st.rerun()
+    
+    st.button(
+        label="Refresh", 
+        type='secondary',
+        on_click=refresh_page())
 
     for pindex, data in enumerate(complete_data):
         expander = st.expander(data["parent"]["name"])
@@ -58,21 +47,24 @@ def view_ui():
             expander.write("No file found.")
         else:
             for cindex, child in enumerate(data["children"]):
-                parent_id = data["parent"]["id"]
-                file_id = child["id"]
-                file_url = mega_service.get_download_link(mega_session, parent_id, file_id)
-
-                col1, col2, col3 = expander.columns(3)
+                col1, col2, col3, col4 = expander.columns(4)
                 col1.write(child["name"])
                 
-                if file_url:
-                    col2.link_button("Download", file_url, icon=":material/download:", use_container_width=True)
+                col2.link_button("Preview", child["preview_link"], use_container_width=True)
                 
                 col3.button(
+                    label="Download",
+                    key=f"Download-{child['name']}-{cindex}-{pindex}",
+                    width="stretch"
+                )
+
+                col4.button(
                     label="Delete", 
                     key=f"Delete-{child['name']}-{cindex}-{pindex}", 
                     width="stretch",
-                    on_click=lambda service=mega_service, session=mega_session, pid=pindex, cid=cindex: delete_file(service, session, pid, cid))
+                    on_click=lambda session=session, pid=pindex, cid=cindex: delete_file(session, pid, cid))
 
+                expander.divider(width="stretch")
+       
 if st.session_state.get("logged_in", False):
     view_ui()

@@ -1,4 +1,5 @@
 import streamlit as st
+from Web_Pages.Utility.utils import error_logging
 
 def intro_ui():
     st.title("Introduction")
